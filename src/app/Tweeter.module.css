@@ -1,0 +1,19 @@
+.root {
+  padding: var(--space-grid);
+  background-color: var(--c-bkg-light);
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+}
+
+.answer {
+  margin-top: var(--space-grid);
+  padding: var(--space-grid);
+  background-color: var(--c-bkg);
+  border-radius: 0.7rem;
+}
+
+.copy {
+  margin-top: var(--space-grid-half);
+  display: flex;
+  justify-content: flex-end;
+}

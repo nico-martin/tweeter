@@ -1,0 +1,33 @@
+.root {
+}
+
+.loaderText {
+  margin-top: var(--space-grid-half);
+  text-align: center;
+  font-family: var(--font-mono);
+  color: var(--c-p-light);
+  font-size: var(--fs-xsmall);
+  font-weight: 200;
+}
+
+.initialize {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: calc(2 * var(--space-grid-big));
+}
+
+.initializeDataWarning {
+  margin-top: var(--space-grid);
+  text-align: center;
+  font-family: var(--font-mono);
+  color: var(--c-p-light);
+  font-size: var(--fs-xsmall);
+  font-weight: 200;
+  max-width: 400px;
+
+  b {
+    font-weight: 700;
+  }
+}

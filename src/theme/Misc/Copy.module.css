@@ -1,0 +1,18 @@
+.button {
+  font-size: var(--fs-xsmall);
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--c-p-light);
+  cursor: pointer;
+}
+
+.content {
+}
+
+.icon {
+}
+
+.iconCopied {
+  color: var(--c-feedback-success);
+}

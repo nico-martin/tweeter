@@ -1,0 +1,67 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  @mixin mobile {
+    flex-direction: column;
+  }
+
+  &:has(.error) {
+    --c-form-border: var(--c-feedback-error);
+    --c-border-dark: var(--c-feedback-error);
+  }
+}
+
+.labelContainer {
+  width: 100%;
+
+  margin-bottom: 0.5em;
+  display: flex;
+  align-items: flex-end;
+}
+
+.label {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-weight: bold;
+  font-size: var(--fs-small);
+
+  @mixin mobile {
+    border-bottom: none;
+  }
+}
+
+.content {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+}
+
+.inputContainer {
+  width: 100%;
+  position: relative;
+}
+
+.error {
+  color: var(--c-form-border);
+  font-size: var(--fs-small) !important;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  transform: translateY(100%);
+  padding-top: 0.25em;
+}
+
+.root.checkbox {
+  flex-direction: row-reverse;
+  margin-top: 1rem;
+
+  .labelContainer {
+    margin-bottom: 0;
+  }
+
+  .inputContainer {
+    margin-right: 1em;
+  }
+}

@@ -1,0 +1,57 @@
+:root {
+  --fs: 1rem;
+  --fs-small: 0.9rem;
+  --fs-xsmall: 0.7rem;
+  --fs-big: 1.2rem;
+  --fs-xbig: 2rem;
+  --font: Affogato, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html {
+  font-size: 120%;
+}
+
+body {
+  font-family: var(--font);
+  font-size: var(--fs);
+  line-height: 1.2;
+  color: var(--c-p);
+}
+
+a {
+  cursor: pointer;
+  color: var(--c-p);
+}
+
+/* button reset */
+button {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+}
+
+::selection {
+  color: var(--c-bkg);
+  background: var(--c-p);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--c-p);
+}
+
+h3 {
+  font-size: var(--fs-big);
+}
+
+h2 {
+  font-size: var(--fs-xbig);
+}
+
+.code,
+code {
+  font-family: var(--font-mono);
+}

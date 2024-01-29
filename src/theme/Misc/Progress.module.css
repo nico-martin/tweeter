@@ -1,0 +1,80 @@
+.root {
+  width: 100%;
+  height: 2rem;
+  position: relative;
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--c-blue);
+  border-radius: 10rem;
+  overflow: hidden;
+  background-color: var(--c-bkg-light);
+  font-size: 0.9rem;
+}
+
+.text {
+  position: absolute;
+  left: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.textBack {
+  color: var(--c-p);
+  z-index: 50;
+}
+
+.textFront {
+  color: var(--c-bkg-light);
+  z-index: 50;
+}
+
+.progress {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: #91f25f;
+  background: linear-gradient(
+    to right,
+    var(--c-blue-dark) 0%,
+    var(--c-blue) 100%
+  );
+  position: relative;
+  border-radius: 10rem;
+  overflow: hidden;
+  z-index: 100;
+  transition: width 0.4s ease-in-out;
+
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: -webkit-gradient(
+      linear,
+      0 0,
+      100% 100%,
+      color-stop(0.25, rgba(255, 255, 255, 0.1)),
+      color-stop(0.25, transparent),
+      color-stop(0.5, transparent),
+      color-stop(0.5, rgba(255, 255, 255, 0.1)),
+      color-stop(0.75, rgba(255, 255, 255, 0.1)),
+      color-stop(0.75, transparent),
+      to(transparent)
+    );
+    z-index: 1;
+    background-size: 50px 50px;
+    animation: move 2s linear infinite;
+    overflow: hidden;
+  }
+}
+
+@keyframes move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}

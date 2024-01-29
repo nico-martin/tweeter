@@ -1,0 +1,3 @@
+.controls {
+  margin-top: calc(var(--space-grid-half) * 2);
+}
