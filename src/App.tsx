@@ -1,32 +1,24 @@
 import React from 'react';
-import Model from './webLLM/Model';
 import { Icon } from '@theme';
 import { IconName } from './theme/SVG/icons';
 import styles from './App.module.css';
 import ChangeModel from '@app/ChangeModel';
 import Main from '@app/Main';
-import Generator from './webLLM/Generator';
+import Model from './webLLM/Model';
+import Llama27BChat from './webLLM/models/Llama27BChat';
+import Mistral7BInstruct from './webLLM/models/Mistral7BInstruct';
 import RedPajamaINCITEChat3B from './webLLM/models/RedPajamaINCITEChat3B';
+import TinyLlama11BChat from './webLLM/models/TinyLlama1-1BChat';
+
+const MODELS: { [key: string]: Model } = {
+  llama27BChat: Llama27BChat,
+  mMistral7BInstruct: Mistral7BInstruct,
+  redpajamaChat: RedPajamaINCITEChat3B,
+  tinyLlama11BChat: TinyLlama11BChat,
+};
 
 const App: React.FC<{}> = () => {
-  const [model, setModel] = React.useState<Model>(RedPajamaINCITEChat3B);
-  //const [progress, setProgress] = React.useState<number>(0);
-  const generator = React.useMemo(() => {
-    const gen = new Generator(model);
-    console.log(gen.modelInCache);
-    gen.setInitProgressCallback((progress: number) => console.log(progress));
-    return gen;
-  }, [model]);
-
-  return (
-    <div>
-      <button onClick={() => generator.load()}>load</button>
-    </div>
-  );
-
-  /*const [model, setModel] = React.useState<Model>(
-    Object.keys(MODELS)[0] as Model
-  );
+  const [model, setModel] = React.useState<Model>(Object.values(MODELS)[0]);
   const [modelModal, setModelModal] = React.useState<boolean>(false);
   return (
     <div className={styles.wrapper}>
@@ -45,7 +37,11 @@ const App: React.FC<{}> = () => {
       </header>
       <div className={styles.modelSettings}>
         {modelModal && (
-          <ChangeModel close={() => setModelModal(false)} setModel={setModel} />
+          <ChangeModel
+            close={() => setModelModal(false)}
+            setModel={setModel}
+            models={MODELS}
+          />
         )}
         <button
           onClick={() => setModelModal(true)}
@@ -55,16 +51,16 @@ const App: React.FC<{}> = () => {
             className={styles.modelSettingsButtonRobot}
             icon={IconName.ROBOT_CONFUSED_OUTLINE}
           />
-          {model}{' '}
+          {model.title}{' '}
           <Icon
             className={styles.modelSettingsButtonUnfold}
             icon={IconName.UNFOLD_MORE_HORIZONTAL}
           />
         </button>
       </div>
-      <Main model={model} className={styles.main} key={model} />
+      <Main model={model} className={styles.main} key={model.id} />
     </div>
-  );*/
+  );
 };
 
 const AppWrapper: React.FC = () => <App />;

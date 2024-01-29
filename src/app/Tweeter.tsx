@@ -2,8 +2,8 @@ import React from 'react';
 import cn from '@common/classnames';
 import styles from './Tweeter.module.css';
 import PromptForm from '@app/PromptForm';
-import { GenerationState } from '../webLLM/useWebLLM';
 import { Copy } from '@theme';
+import { GenerationState } from '../webLLM/static/types';
 
 const Tweeter: React.FC<{
   generate: (prompt: string) => Promise<string>;

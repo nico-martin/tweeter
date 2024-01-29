@@ -6,6 +6,8 @@ import {
   InitProgressCallback,
   ChatConfig,
   ConvTemplateConfig,
+  GenerateProgressCallback,
+  GenerationState,
 } from './static/types';
 import {
   CONFIG_CACHE_SCOPE,
@@ -24,7 +26,9 @@ class Generator {
   private initProgressCallback?: InitProgressCallback;
   public modelInCache: boolean = false;
   public modelLoaded: boolean = false;
+  public generationState: GenerationState = GenerationState.IDLE;
   private conversationConfig: Partial<ConvTemplateConfig> = {};
+  private interruptSignal = false;
 
   setInitProgressCallback(initProgressCallback: InitProgressCallback) {
     this.initProgressCallback = initProgressCallback;
@@ -173,10 +177,118 @@ class Generator {
     this.modelInCache = true;
   }
 
-  async unload() {
+  public async generate(
+    input: string,
+    progressCallback?: GenerateProgressCallback,
+    streamInterval = 1
+  ): Promise<string> {
+    this.interruptSignal = false;
+    this.generationState = GenerationState.LISTENING;
+    await this.prefill(input);
+
+    let counter = 1;
+    while (!this.stopped()) {
+      this.generationState = GenerationState.ANSWERING;
+      if (this.interruptSignal) {
+        this.getPipeline().triggerStop();
+        break;
+      }
+      counter += 1;
+      await this.decode();
+      if (counter % streamInterval == 0 && progressCallback !== undefined) {
+        progressCallback(counter, this.getMessage());
+      }
+    }
+    this.generationState = GenerationState.IDLE;
+    return this.getMessage();
+  }
+
+  public async resetChat() {
+    this.pipeline?.resetChat();
+  }
+
+  public async unload() {
     this.pipeline?.dispose();
     this.pipeline = null;
     this.modelLoaded = false;
+  }
+
+  public async getMaxStorageBufferBindingSize(): Promise<number> {
+    // First detect GPU
+    const gpuDetectOutput = await tvmjs.detectGPUDevice();
+    if (gpuDetectOutput == undefined) {
+      throw Error('Cannot find WebGPU in the environment');
+    }
+
+    const computeMB = (value: number) => {
+      return Math.ceil(value / (1 << 20)) + 'MB';
+    };
+    const maxStorageBufferBindingSize =
+      gpuDetectOutput.device.limits.maxStorageBufferBindingSize;
+    const defaultMaxStorageBufferBindingSize = 1 << 30; // 1GB
+    if (maxStorageBufferBindingSize < defaultMaxStorageBufferBindingSize) {
+      console.log(
+        `WARNING: the current maxStorageBufferBindingSize ` +
+          `(${computeMB(maxStorageBufferBindingSize)}) ` +
+          `may only work for a limited number of models, e.g.: \n` +
+          `- Llama-2-7b-chat-hf-q4f16_1-1k \n` +
+          `- RedPajama-INCITE-Chat-3B-v1-q4f16_1-1k \n` +
+          `- RedPajama-INCITE-Chat-3B-v1-q4f32_1-1k \n` +
+          `- TinyLlama-1.1B-Chat-v0.4-q4f16_1-1k \n` +
+          `- TinyLlama-1.1B-Chat-v0.4-q4f32_1-1k`
+      );
+    }
+    return maxStorageBufferBindingSize;
+  }
+
+  public async getGPUVendor(): Promise<string> {
+    // First detect GPU
+    const gpuDetectOutput = await tvmjs.detectGPUDevice();
+    if (gpuDetectOutput == undefined) {
+      throw Error('Cannot find WebGPU in the environment');
+    }
+    return gpuDetectOutput.adapterInfo.vendor;
+  }
+
+  //--------------------------
+  // Lower level API
+  //--------------------------
+  /**
+   * @returns Whether the generation stopped.
+   */
+  public stopped(): boolean {
+    return this.getPipeline().stopped();
+  }
+
+  /**
+   * Get the current generated response.
+   *
+   * @returns The current output message.
+   */
+  public getMessage(): string {
+    return this.getPipeline().getMessage();
+  }
+
+  /**
+   * Run a prefill step with a given input.
+   * @param input The input prompt.
+   */
+  public async prefill(input: string) {
+    return this.getPipeline().prefillStep(input);
+  }
+
+  /**
+   * Run a decode step to decode the next token.
+   */
+  public async decode() {
+    return this.getPipeline().decodeStep();
+  }
+
+  private getPipeline(): Pipeline {
+    if (this.pipeline === undefined) {
+      throw Error('Chat module not yet initialized, did you call chat.reload?');
+    }
+    return this.pipeline;
   }
 
   private async asyncLoadTokenizer(

@@ -33,4 +33,21 @@ export interface ChatConfig {
   temperature: number;
 }
 
-export type InitProgressCallback = (report: {}) => void;
+export type InitProgressCallback = (report: InitProgressCallbackReport) => void;
+
+export type InitProgressCallbackReport = {
+  progress: number;
+  timeElapsed: number;
+  text: string;
+};
+
+export type GenerateProgressCallback = (
+  step: number,
+  currentMessage: string
+) => void;
+
+export enum GenerationState {
+  IDLE = 'IDLE',
+  LISTENING = 'LISTENING',
+  ANSWERING = 'ANSWERING',
+}

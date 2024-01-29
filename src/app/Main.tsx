@@ -1,28 +1,48 @@
 import React from 'react';
 import styles from './Main.module.css';
-import useWebLLM, { ChatState, Model, MODELS } from '../webLLM/useWebLLM';
+import useWebLLM from '../webLLM/useWebLLM';
 import { Button, Notification, Progress } from '@theme';
-import { isModelLoaded } from '@common/storage';
 import { formatBytes, round } from '@common/functions';
 import { NotificationType } from '../theme/Misc/Notification';
 import Tweeter from '@app/Tweeter';
 import cn from '@common/classnames';
+import Model from '../webLLM/Model';
 
 const Main: React.FC<{ model: Model; className?: string }> = ({
   model,
   className = '',
 }) => {
-  const { state, init, activeReport, generate, answer, generationState } =
-    useWebLLM(model);
-  const progress = activeReport?.progress || 0;
+  const {
+    modelLoaded,
+    modelLoading,
+    modelCached,
+    generatorInitialized,
+    report,
+    error,
+    loadModel,
+    generationState,
+    generate,
+    answer,
+  } = useWebLLM(model);
+  const progress = report?.progress || 0;
 
   return (
     <main className={cn(styles.root, className)}>
-      {state === ChatState.IDLE || state === ChatState.INITIALIZING ? (
+      {!generatorInitialized ? null : modelLoaded ? (
+        <Tweeter
+          generate={generate}
+          answer={answer}
+          generationState={generationState}
+        />
+      ) : error ? (
+        <Notification type={NotificationType.ERROR}>
+          An error occurred while loading the model
+        </Notification>
+      ) : (
         <div className={styles.initialize}>
-          {state === ChatState.IDLE ? (
-            <Button size="large" onClick={() => init()}>
-              {isModelLoaded(model) ? 'Initialize Model' : 'Download Model'}
+          {!modelLoading ? (
+            <Button size="large" onClick={() => loadModel()}>
+              {modelCached ? 'Initialize Model' : 'Download Model'}
             </Button>
           ) : (
             <Progress
@@ -37,7 +57,7 @@ const Main: React.FC<{ model: Model; className?: string }> = ({
               }
             />
           )}
-          {isModelLoaded(model) ? (
+          {modelCached ? (
             <p className={styles.initializeDataWarning}>
               <i>
                 The model is already cached.
@@ -48,23 +68,13 @@ const Main: React.FC<{ model: Model; className?: string }> = ({
           ) : (
             <p className={styles.initializeDataWarning}>
               <i>
-                This will download around{' '}
-                <b>{formatBytes(MODELS[model].size)}</b> over the network. After
-                the initial load, it will be cached in your browser.
+                This will download around <b>{formatBytes(model.size)}</b> over
+                the network. After the initial load, it will be cached in your
+                browser.
               </i>
             </p>
           )}
         </div>
-      ) : state === ChatState.ERROR ? (
-        <Notification type={NotificationType.ERROR}>
-          An error occurred while loading the model
-        </Notification>
-      ) : (
-        <Tweeter
-          generate={generate}
-          answer={answer}
-          generationState={generationState}
-        />
       )}
     </main>
   );
