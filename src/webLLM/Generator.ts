@@ -8,6 +8,7 @@ import {
   ConvTemplateConfig,
   GenerateProgressCallback,
   GenerationState,
+  RuntimeStats,
 } from './static/types';
 import {
   CONFIG_CACHE_SCOPE,
@@ -180,10 +181,12 @@ class Generator {
   public async generate(
     input: string,
     progressCallback?: GenerateProgressCallback,
+    rememberPreviousConversation: boolean = true,
     streamInterval = 1
   ): Promise<string> {
+    !rememberPreviousConversation && (await this.resetChat());
     this.interruptSignal = false;
-    this.generationState = GenerationState.LISTENING;
+    this.generationState = GenerationState.THINKING;
     await this.prefill(input);
 
     let counter = 1;
@@ -201,6 +204,10 @@ class Generator {
     }
     this.generationState = GenerationState.IDLE;
     return this.getMessage();
+  }
+
+  public getRuntimeStats(): RuntimeStats {
+    return this.pipeline?.runtimeStats();
   }
 
   public async resetChat() {

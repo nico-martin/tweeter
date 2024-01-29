@@ -3,23 +3,29 @@ import cn from '@common/classnames';
 import styles from './Tweeter.module.css';
 import PromptForm from '@app/PromptForm';
 import { Copy } from '@theme';
-import { GenerationState } from '../webLLM/static/types';
+import { GenerationState, RuntimeStats } from '../webLLM/static/types';
+import { round } from '@common/functions';
 
 const Tweeter: React.FC<{
-  generate: (prompt: string) => Promise<string>;
+  generate: (
+    prompt: string,
+    rememberPreviousConversation?: boolean
+  ) => Promise<string>;
   answer: string;
   generationState: GenerationState;
-}> = ({ generate, answer, generationState }) => {
+  runtimeStats: RuntimeStats;
+}> = ({ generate, answer, generationState, runtimeStats }) => {
   const [prompt, setPrompt] = React.useState<string>('');
   const [activePrompt, setActivePrompt] = React.useState<string>('');
 
   React.useEffect(() => {
     if (prompt && prompt !== activePrompt) {
-      console.log(prompt);
       setActivePrompt(prompt);
-      generate(prompt);
+      generate(prompt, false);
     }
   }, [prompt]);
+
+  const answerWithoutQuotes = answer.replace(/"/g, '');
 
   return (
     <div className={cn(styles.root)}>
@@ -27,18 +33,49 @@ const Tweeter: React.FC<{
         setPrompt={setPrompt}
         disabled={generationState !== GenerationState.IDLE}
       />
-      {answer !== '' && (
+      {(answerWithoutQuotes !== '' || GenerationState.THINKING) && (
         <p className={styles.answer}>
-          {generationState === GenerationState.LISTENING
+          {generationState === GenerationState.THINKING
             ? 'thinking...'
-            : answer}
+            : answerWithoutQuotes}
         </p>
       )}
-      {answer !== '' && generationState === GenerationState.IDLE && (
-        <div className={styles.copy}>
-          <Copy content={answer} />
+      <div className={styles.footer}>
+        <div className={styles.stats}>
+          {runtimeStats && (
+            <p>
+              Input:{' '}
+              {runtimeStats.prefillTotalTokens ? (
+                <span>
+                  {runtimeStats.prefillTotalTokens} Tokens (
+                  {round(runtimeStats.prefillTokensPerSec, 2)} tokens/sec)
+                </span>
+              ) : (
+                <span>-</span>
+              )}
+            </p>
+          )}
+          {runtimeStats && (
+            <p>
+              Output:{' '}
+              {runtimeStats.decodingTotalTokens ? (
+                <span>
+                  {runtimeStats.decodingTotalTokens} Tokens (
+                  {round(runtimeStats.decodingTokensPerSec, 2)} tokens/sec)
+                </span>
+              ) : (
+                <span>-</span>
+              )}
+            </p>
+          )}
         </div>
-      )}
+        {answerWithoutQuotes !== '' &&
+          generationState === GenerationState.IDLE && (
+            <div className={styles.copy}>
+              <Copy content={answerWithoutQuotes} />
+            </div>
+          )}
+      </div>
     </div>
   );
 };

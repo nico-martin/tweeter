@@ -12,8 +12,12 @@
   border-radius: 0.7rem;
 }
 
-.copy {
+.footer {
   margin-top: var(--space-grid-half);
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  font-size: var(--fs-xsmall);
+}
+
+.copy {
 }

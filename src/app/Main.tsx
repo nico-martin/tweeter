@@ -23,6 +23,7 @@ const Main: React.FC<{ model: Model; className?: string }> = ({
     generationState,
     generate,
     answer,
+    runtimeStats,
   } = useWebLLM(model);
   const progress = report?.progress || 0;
 
@@ -33,6 +34,7 @@ const Main: React.FC<{ model: Model; className?: string }> = ({
           generate={generate}
           answer={answer}
           generationState={generationState}
+          runtimeStats={runtimeStats}
         />
       ) : error ? (
         <Notification type={NotificationType.ERROR}>

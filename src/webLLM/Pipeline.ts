@@ -1,6 +1,6 @@
 import * as tvmjs from '@nico-martin/tvmjs';
 import { Tokenizer } from '@mlc-ai/web-tokenizers';
-import { ChatConfig } from './static/types';
+import { ChatConfig, RuntimeStats } from './static/types';
 import { getConversation, Conversation } from './conversation';
 
 class Pipeline {
@@ -240,6 +240,17 @@ class Pipeline {
       `prefill: ${(this.prefillTotalTokens / this.prefillTotalTime).toFixed(4)} tokens/sec, ` +
       `decoding: ${(this.decodingTotalTokens / this.decodingTotalTime).toFixed(4)} tokens/sec`
     );
+  }
+
+  runtimeStats(): RuntimeStats {
+    return {
+      prefillTotalTokens: this.prefillTotalTokens,
+      prefillTotalTime: this.prefillTotalTime,
+      prefillTokensPerSec: this.prefillTotalTokens / this.prefillTotalTime,
+      decodingTotalTokens: this.decodingTotalTokens,
+      decodingTotalTime: this.decodingTotalTime,
+      decodingTokensPerSec: this.decodingTotalTokens / this.decodingTotalTime,
+    };
   }
 
   async asyncLoadWebGPUPipelines() {
@@ -623,50 +634,6 @@ class Pipeline {
       throw Error('Exceed max window length curr=' + tokens.length);
     }
     return tokens;
-  }
-
-  async evaluate() {
-    // run a canonical evaluation of the flow
-    this.fclearKVCaches(this.kvCache);
-    this.filledKVCacheLength = 0;
-
-    const testPrompt = 'The capital of Canada is';
-    const ids = await this.tokenizer.encode(testPrompt);
-    const tokens = Array.from(ids);
-    tokens.unshift(this.bosTokenId);
-    if (tokens.length == 0) {
-      throw Error('empty token');
-    }
-
-    this.tvm.beginScope();
-    const inputData = this.tvm.empty([1, tokens.length], 'int32', this.device);
-    inputData.copyFrom(tokens);
-    const prefillStart = performance.now();
-    this.forward(inputData, tokens.length);
-    this.tvm.endScope();
-    await this.device.sync();
-
-    const decodingStart = performance.now();
-
-    this.tvm.beginScope();
-    const firstSampleToken = this.tvm
-      .empty([1, 1], 'int32', this.device)
-      .copyFrom([6234]);
-    const logitsOnCPU = this.updateLogitsOnCPU(
-      this.forward(firstSampleToken, tokens.length + 1)
-    );
-    await this.device.sync();
-    this.tvm.endScope();
-
-    const decodingEnd = performance.now();
-    const msg =
-      `prefill-time=${((decodingStart - prefillStart) / 1000).toFixed(4)} sec` +
-      `decoding-time=${((decodingEnd - decodingStart) / 1000).toFixed(4)} sec`;
-
-    // simply log tokens for eyeballing.
-    console.log('Logits:');
-    console.log(logitsOnCPU.toArray());
-    console.log(msg);
   }
 }
 
