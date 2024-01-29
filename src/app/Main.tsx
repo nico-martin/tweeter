@@ -36,7 +36,9 @@ const Main: React.FC<{ model: Model; className?: string }> = ({
         />
       ) : error ? (
         <Notification type={NotificationType.ERROR}>
-          An error occurred while loading the model
+          An error occurred while loading the model:
+          <br />
+          {error}
         </Notification>
       ) : (
         <div className={styles.initialize}>

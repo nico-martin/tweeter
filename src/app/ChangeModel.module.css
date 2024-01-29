@@ -10,8 +10,26 @@
   border-top: 1px solid var(--c-border);
   padding: 1rem 0;
   text-align: left;
+  position: relative;
+}
+
+.activeModel {
+  &:before {
+    content: '';
+    position: absolute;
+    left: -0.5em;
+    top: 1em;
+    bottom: 1em;
+    width: 4px;
+    background: var(--c-p);
+  }
 }
 
 .desc {
   padding: 1rem 0;
+}
+
+.cached {
+  margin-top: var(--space-grid-half);
+  font-size: var(--fs-xsmall);
 }

@@ -14,11 +14,11 @@ const MODELS: { [key: string]: Model } = {
   llama27BChat: Llama27BChat,
   mMistral7BInstruct: Mistral7BInstruct,
   redpajamaChat: RedPajamaINCITEChat3B,
-  tinyLlama11BChat: TinyLlama11BChat,
+  //tinyLlama11BChat: TinyLlama11BChat,
 };
 
 const App: React.FC<{}> = () => {
-  const [model, setModel] = React.useState<Model>(Object.values(MODELS)[0]);
+  const [model, setModel] = React.useState<Model>(Object.values(MODELS)[1]);
   const [modelModal, setModelModal] = React.useState<boolean>(false);
   return (
     <div className={styles.wrapper}>
@@ -41,6 +41,7 @@ const App: React.FC<{}> = () => {
             close={() => setModelModal(false)}
             setModel={setModel}
             models={MODELS}
+            activeModel={model}
           />
         )}
         <button
@@ -59,6 +60,30 @@ const App: React.FC<{}> = () => {
         </button>
       </div>
       <Main model={model} className={styles.main} key={model.id} />
+      <footer className={styles.footer}>
+        <p>
+          Tweeter is am{' '}
+          <a
+            href="https://github.com/nico-martin/tweeter/blob/main/LICENSE"
+            target="_blank"
+          >
+            Open Source
+          </a>{' '}
+          project by{' '}
+          <a href="https://nico.dev" target="_blank">
+            Nico Martin
+          </a>
+          , published on{' '}
+          <a href="https://github.com/nico-martin/tweeter/" target="_blank">
+            github.com/nico-martin/tweeter
+          </a>
+          .
+        </p>
+        <p>
+          This website does not collect any personal data besides what is
+          technically required.
+        </p>
+      </footer>
     </div>
   );
 };

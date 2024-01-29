@@ -35,6 +35,9 @@
   margin: 0 auto;
   width: 90%;
   max-width: 700px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .main {
@@ -64,4 +67,15 @@
 
 .modelSettingsButtonUnfold {
   opacity: 0.5;
+}
+
+.footer {
+  font-size: var(--fs-xsmall);
+  text-align: center;
+  padding-top: var(--space-grid);
+  margin-top: auto;
+
+  p + p {
+    margin-top: 0.5em;
+  }
 }
