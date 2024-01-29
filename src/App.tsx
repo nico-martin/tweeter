@@ -9,6 +9,7 @@ import Llama27BChat from './webLLM/models/Llama27BChat';
 import Mistral7BInstruct from './webLLM/models/Mistral7BInstruct';
 import RedPajamaINCITEChat3B from './webLLM/models/RedPajamaINCITEChat3B';
 import TinyLlama11BChat from './webLLM/models/TinyLlama1-1BChat';
+import pkg from '../package.json';
 
 const MODELS: { [key: string]: Model } = {
   llama27BChat: Llama27BChat,
@@ -83,6 +84,7 @@ const App: React.FC<{}> = () => {
           This website does not collect any personal data besides what is
           technically required.
         </p>
+        <p>v. {pkg.version}</p>
       </footer>
     </div>
   );

@@ -62,3 +62,7 @@ export interface RuntimeStats {
   decodingTotalTime: number;
   decodingTokensPerSec: number;
 }
+
+export interface FullStats extends RuntimeStats {
+  gpuAdapter: GPUAdapterInfo;
+}

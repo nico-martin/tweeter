@@ -28,6 +28,7 @@ class Generator {
   public modelInCache: boolean = false;
   public modelLoaded: boolean = false;
   public generationState: GenerationState = GenerationState.IDLE;
+  public gpuDeviceAdapter: GPUAdapterInfo = null;
   private conversationConfig: Partial<ConvTemplateConfig> = {};
   private interruptSignal = false;
 
@@ -40,6 +41,7 @@ class Generator {
     conversationConfig: Partial<ConvTemplateConfig> = {}
   ) {
     this.setModel(model, conversationConfig);
+    this.getGPUDeviceAdapter();
   }
 
   private async setModel(
@@ -255,6 +257,10 @@ class Generator {
       throw Error('Cannot find WebGPU in the environment');
     }
     return gpuDetectOutput.adapterInfo.vendor;
+  }
+
+  public async getGPUDeviceAdapter(): Promise<void> {
+    this.gpuDeviceAdapter = (await tvmjs.detectGPUDevice()).adapterInfo;
   }
 
   //--------------------------

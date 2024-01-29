@@ -3,8 +3,13 @@ import cn from '@common/classnames';
 import styles from './Tweeter.module.css';
 import PromptForm from '@app/PromptForm';
 import { Copy } from '@theme';
-import { GenerationState, RuntimeStats } from '../webLLM/static/types';
+import {
+  FullStats,
+  GenerationState,
+  RuntimeStats,
+} from '../webLLM/static/types';
 import { round } from '@common/functions';
+import Model from '../webLLM/Model';
 
 const Tweeter: React.FC<{
   generate: (
@@ -13,8 +18,9 @@ const Tweeter: React.FC<{
   ) => Promise<string>;
   answer: string;
   generationState: GenerationState;
-  runtimeStats: RuntimeStats;
-}> = ({ generate, answer, generationState, runtimeStats }) => {
+  stats: FullStats;
+  model: Model;
+}> = ({ generate, answer, generationState, stats, model }) => {
   const [prompt, setPrompt] = React.useState<string>('');
   const [activePrompt, setActivePrompt] = React.useState<string>('');
 
@@ -42,31 +48,44 @@ const Tweeter: React.FC<{
       )}
       <div className={styles.footer}>
         <div className={styles.stats}>
-          {runtimeStats && (
-            <p>
-              Input:{' '}
-              {runtimeStats.prefillTotalTokens ? (
-                <span>
-                  {runtimeStats.prefillTotalTokens} Tokens (
-                  {round(runtimeStats.prefillTokensPerSec, 2)} tokens/sec)
-                </span>
-              ) : (
-                <span>-</span>
-              )}
-            </p>
-          )}
-          {runtimeStats && (
-            <p>
-              Output:{' '}
-              {runtimeStats.decodingTotalTokens ? (
-                <span>
-                  {runtimeStats.decodingTotalTokens} Tokens (
-                  {round(runtimeStats.decodingTokensPerSec, 2)} tokens/sec)
-                </span>
-              ) : (
-                <span>-</span>
-              )}
-            </p>
+          {stats && (
+            <React.Fragment>
+              <p>
+                <b>Runtime</b>
+                <br />
+                Input:{' '}
+                {stats.prefillTotalTokens ? (
+                  <span>
+                    {stats.prefillTotalTokens} Tokens (
+                    {round(stats.prefillTokensPerSec, 2)} tokens/sec)
+                  </span>
+                ) : (
+                  <span>-</span>
+                )}
+                <br />
+                Output:{' '}
+                {stats.decodingTotalTokens ? (
+                  <span>
+                    {stats.decodingTotalTokens} Tokens (
+                    {round(stats.decodingTokensPerSec, 2)} tokens/sec)
+                  </span>
+                ) : (
+                  <span>-</span>
+                )}
+              </p>
+              <p>
+                <b>GPU:</b>{' '}
+                {stats.gpuAdapter
+                  ? `${stats.gpuAdapter.description ? stats.gpuAdapter.description : stats.gpuAdapter.vendor} (${stats.gpuAdapter.architecture})`
+                  : '-'}
+              </p>
+              <p>
+                <b>Model:</b>{' '}
+                <a href={model.url.replace('/resolve/main', '')}>
+                  {model.title}
+                </a>
+              </p>
+            </React.Fragment>
           )}
         </div>
         {answerWithoutQuotes !== '' &&

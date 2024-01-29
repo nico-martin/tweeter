@@ -3,6 +3,7 @@ import Model from './Model';
 import Generator from './Generator';
 import {
   ConvTemplateConfig,
+  FullStats,
   GenerationState,
   InitProgressCallback,
   InitProgressCallbackReport,
@@ -27,7 +28,7 @@ const useWebLLM = (
     rememberPreviousConversation: boolean
   ) => Promise<string>;
   answer: string;
-  runtimeStats: RuntimeStats;
+  stats: FullStats;
 } => {
   const [generatorInitialized, setGeneratorInitialized] =
     React.useState<boolean>(false);
@@ -44,7 +45,7 @@ const useWebLLM = (
   );
   const [answer, setAnswer] = React.useState<string>('');
   const [error, setError] = React.useState<string>('');
-  const [runtimeStats, setRuntimeStats] = React.useState<RuntimeStats>(null);
+  const [stats, setStats] = React.useState<FullStats>(null);
   const generator = React.useMemo(() => {
     const g = new Generator(model, conversationConfig);
     setModelLoaded(g.modelLoaded);
@@ -82,14 +83,20 @@ const useWebLLM = (
     const response = await generator.generate(
       prompt,
       (step, message) => {
-        setRuntimeStats(generator.getRuntimeStats());
+        setStats({
+          ...generator.getRuntimeStats(),
+          gpuAdapter: generator.gpuDeviceAdapter,
+        });
         setGenerationState(GenerationState.ANSWERING);
         setAnswer(message);
       },
       rememberPreviousConversation
     );
     setGenerationState(GenerationState.IDLE);
-    setRuntimeStats(generator.getRuntimeStats());
+    setStats({
+      ...generator.getRuntimeStats(),
+      gpuAdapter: generator.gpuDeviceAdapter,
+    });
     setAnswer(response);
     return response;
   };
@@ -105,7 +112,7 @@ const useWebLLM = (
     generationState,
     generate,
     answer,
-    runtimeStats,
+    stats,
   };
 };
 
