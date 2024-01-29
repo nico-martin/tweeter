@@ -3,6 +3,8 @@
 Have your tweets written by AI.  
 Directly in the browser.
 
+![Tweeter Screenshot](https://raw.githubusercontent.com/nico-martin/tweeter/main/tweeter-screenshot.png)
+
 [tweeter.nico.dev](https://tweeter.nico.dev)
 
 ## How it works
