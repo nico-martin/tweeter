@@ -59,6 +59,7 @@
   display: flex;
   gap: 0.5rem;
   cursor: pointer;
+  color: var(--c-p);
 }
 
 .modelSettingsButtonRobot {

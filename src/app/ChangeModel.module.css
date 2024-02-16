@@ -11,6 +11,7 @@
   padding: 1rem 0;
   text-align: left;
   position: relative;
+  color: var(--c-p);
 }
 
 .activeModel {
