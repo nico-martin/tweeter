@@ -11,30 +11,6 @@ export interface ConvTemplateConfig {
   stop_tokens: Array<number>;
 }
 
-export interface ChatConfig {
-  tokenizer_files: Array<string>;
-  conv_config?: Partial<ConvTemplateConfig>;
-  conv_template: string;
-  // additional metadata
-  mean_gen_len: number;
-  shift_fill_factor: number;
-  repetition_penalty: number;
-  top_p: number;
-  temperature: number;
-}
-
-export interface ChatConfig {
-  tokenizer_files: Array<string>;
-  conv_config?: Partial<ConvTemplateConfig>;
-  conv_template: string;
-  // additional metadata
-  mean_gen_len: number;
-  shift_fill_factor: number;
-  repetition_penalty: number;
-  top_p: number;
-  temperature: number;
-}
-
 export type InitProgressCallback = (report: InitProgressCallbackReport) => void;
 
 export type InitProgressCallbackReport = {
@@ -43,16 +19,34 @@ export type InitProgressCallbackReport = {
   text: string;
 };
 
+export interface ChatConfig {
+  tokenizer_files: Array<string>;
+  conv_config?: Partial<ConvTemplateConfig>;
+  conv_template: string;
+  // additional metadata
+  mean_gen_len: number;
+  shift_fill_factor: number;
+  repetition_penalty: number;
+  top_p: number;
+  temperature: number;
+}
+
+export interface ChatConfig {
+  tokenizer_files: Array<string>;
+  conv_config?: Partial<ConvTemplateConfig>;
+  conv_template: string;
+  // additional metadata
+  mean_gen_len: number;
+  shift_fill_factor: number;
+  repetition_penalty: number;
+  top_p: number;
+  temperature: number;
+}
+
 export type GenerateProgressCallback = (
   step: number,
   currentMessage: string
 ) => void;
-
-export enum GenerationState {
-  IDLE = 'IDLE',
-  THINKING = 'THINKING',
-  ANSWERING = 'ANSWERING',
-}
 
 export interface RuntimeStats {
   prefillTotalTokens: number;
@@ -63,6 +57,13 @@ export interface RuntimeStats {
   decodingTokensPerSec: number;
 }
 
-export interface FullStats extends RuntimeStats {
-  gpuAdapter: GPUAdapterInfo;
+export interface WorkerEventStatus {}
+
+export enum GenerationState {
+  IDLE = 'IDLE',
+  INITIALIZING = 'INITIALIZING',
+  THINKING = 'THINKING',
+  ANSWERING = 'ANSWERING',
+  COMPLETE = 'COMPLETE',
+  ERROR = 'ERROR',
 }

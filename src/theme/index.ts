@@ -7,7 +7,7 @@ export { default as PortalBox } from './ShadowBox/PortalBox';
 export { default as SVG } from './SVG/SVG';
 export { default as Icon } from './SVG/Icon';
 export { default as Loader } from './Loader/Loader';
-export { default as Notification } from './Misc/Notification';
+export { default as Notification, NotificationType } from './Misc/Notification';
 export { default as OutsideClickHandler } from './Misc/OutsideClickHandler';
 export { default as Progress } from './Misc/Progress';
 export { default as Copy } from './Misc/Copy';

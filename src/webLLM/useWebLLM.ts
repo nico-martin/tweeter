@@ -1,118 +1,154 @@
 import React from 'react';
 import Model from './Model';
-import Generator from './Generator';
+import { v4 as uuidv4 } from 'uuid';
+
 import {
   ConvTemplateConfig,
-  FullStats,
   GenerationState,
-  InitProgressCallback,
   InitProgressCallbackReport,
   RuntimeStats,
 } from './static/types';
-import hasModelInCache from './utils/hasModelInCache';
+import { WorkerRequest, WorkerResponse } from './worker/types';
+import {
+  dispatchWorkerEvent,
+  getWorkerEventKey,
+  onWorkerEvent,
+} from './worker/client';
 
-const useWebLLM = (
-  model: Model,
-  conversationConfig: Partial<ConvTemplateConfig> = {}
-): {
+const useWebLLM = (): {
+  workerBusy: boolean;
+  model: Model;
+  setModel: (model: Model) => void;
+  loaderReport: InitProgressCallbackReport;
   modelLoaded: boolean;
-  modelLoading: boolean;
-  modelCached: boolean;
-  generatorInitialized: boolean;
-  loadModel: () => Promise<void>;
-  report: InitProgressCallbackReport;
+  runtimeStats: RuntimeStats;
   error: string;
+  answer: string;
   generationState: GenerationState;
   generate: (
     prompt: string,
     rememberPreviousConversation: boolean
   ) => Promise<string>;
-  answer: string;
-  stats: FullStats;
+  initiate: () => Promise<Model>;
 } => {
-  const [generatorInitialized, setGeneratorInitialized] =
-    React.useState<boolean>(false);
-  const [modelLoading, setModelLoading] = React.useState<boolean>(false);
+  const [workerBusy, setWorkerBusy] = React.useState<boolean>(false);
+  const [model, setModel] = React.useState<Model>(null);
+  const [loaderReport, setLoaderReport] =
+    React.useState<InitProgressCallbackReport>({
+      progress: 0,
+      timeElapsed: 0,
+      text: '',
+    });
   const [modelLoaded, setModelLoaded] = React.useState<boolean>(false);
-  const [modelCached, setModelCached] = React.useState<boolean>(false);
-  const [report, setReport] = React.useState<InitProgressCallbackReport>({
-    progress: 0,
-    timeElapsed: 0,
-    text: '',
-  });
+  const [conversationConfig, setConversationConfig] =
+    React.useState<Partial<ConvTemplateConfig>>(null);
+  const [answer, setAnswer] = React.useState<string>('');
   const [generationState, setGenerationState] = React.useState<GenerationState>(
     GenerationState.IDLE
   );
-  const [answer, setAnswer] = React.useState<string>('');
-  const [error, setError] = React.useState<string>('');
-  const [stats, setStats] = React.useState<FullStats>(null);
-  const generator = React.useMemo(() => {
-    const g = new Generator(model, conversationConfig);
-    setModelLoaded(g.modelLoaded);
-    hasModelInCache(model).then((cached) => {
-      setModelCached(cached);
-      setGeneratorInitialized(true);
-    });
+  const [runtimeStats, setRuntimeStats] = React.useState<RuntimeStats>(null);
+  const [error, setError] = React.useState<string>(null);
 
-    return g;
+  const worker = React.useRef(null);
+
+  const postWorkerMessage = (payload: WorkerRequest) =>
+    worker.current.postMessage(payload);
+
+  React.useEffect(() => {
+    if (!worker.current) {
+      worker.current = new Worker(
+        new URL('./worker/worker.ts', import.meta.url),
+        {
+          type: 'module',
+        }
+      );
+    }
+
+    const onMessageReceived = (e: MessageEvent<WorkerResponse>) =>
+      dispatchWorkerEvent(e.data);
+
+    worker.current.addEventListener('message', onMessageReceived);
+    return () =>
+      worker.current.removeEventListener('message', onMessageReceived);
   }, []);
 
-  const loadModel = async (progressCallback: InitProgressCallback = null) => {
-    setError('');
-    setModelLoading(true);
-    try {
-      generator.setInitProgressCallback((report) => {
-        progressCallback && progressCallback(report);
-        setReport(report);
-      });
-      await generator.load();
-      setModelLoading(false);
-      setModelLoaded(generator.modelLoaded);
-      setModelCached(generator.modelInCache);
-    } catch (e) {
-      setError(e.toString());
-    }
-  };
+  React.useEffect(() => {
+    setModelLoaded(false);
+  }, [model, conversationConfig]);
 
-  const generate = async (
-    prompt: string,
-    rememberPreviousConversation: boolean = true
-  ) => {
-    setGenerationState(GenerationState.THINKING);
-    setAnswer('');
-    const response = await generator.generate(
-      prompt,
-      (step, message) => {
-        setStats({
-          ...generator.getRuntimeStats(),
-          gpuAdapter: generator.gpuDeviceAdapter,
-        });
-        setGenerationState(GenerationState.ANSWERING);
-        setAnswer(message);
-      },
-      rememberPreviousConversation
-    );
-    setGenerationState(GenerationState.IDLE);
-    setStats({
-      ...generator.getRuntimeStats(),
-      gpuAdapter: generator.gpuDeviceAdapter,
+  const initiate = (): Promise<Model> =>
+    new Promise((resolve, reject) => {
+      modelLoaded && resolve(model);
+      generate()
+        .then(() => resolve(model))
+        .catch(reject);
     });
-    setAnswer(response);
-    return response;
-  };
+
+  const generate = (
+    prompt: string = '',
+    rememberPreviousConversation: boolean = false
+  ): Promise<string> =>
+    new Promise((resolve, reject) => {
+      setWorkerBusy(true);
+      const requestId = uuidv4();
+      postWorkerMessage({
+        model,
+        prompt,
+        rememberPreviousConversation,
+        conversationConfig,
+        requestId,
+      });
+      onWorkerEvent(requestId, (data: WorkerResponse) => {
+        console.log(data);
+        switch (data.status) {
+          case 'progress': {
+            setGenerationState(GenerationState.INITIALIZING);
+            setLoaderReport({
+              progress: data.progress,
+              timeElapsed: data.timeElapsed,
+              text: data.text,
+            });
+            break;
+          }
+          case 'initDone': {
+            setGenerationState(GenerationState.THINKING);
+            break;
+          }
+          case 'update': {
+            setGenerationState(GenerationState.ANSWERING);
+            setAnswer(data.output || '');
+            setRuntimeStats(data.runtimeStats);
+            break;
+          }
+          case 'complete': {
+            setGenerationState(GenerationState.COMPLETE);
+            setAnswer(data.output || '');
+            setRuntimeStats(data.runtimeStats);
+            resolve(data.output);
+            break;
+          }
+          case 'error': {
+            setGenerationState(GenerationState.ERROR);
+            setError(data.error);
+            reject(data.error);
+            break;
+          }
+        }
+      });
+    });
 
   return {
+    workerBusy,
+    model,
+    setModel,
+    loaderReport,
     modelLoaded,
-    modelLoading,
-    modelCached,
-    generatorInitialized,
-    loadModel,
-    report,
+    runtimeStats,
     error,
+    answer,
     generationState,
     generate,
-    answer,
-    stats,
+    initiate,
   };
 };
 

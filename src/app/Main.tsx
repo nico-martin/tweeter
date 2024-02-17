@@ -1,33 +1,84 @@
 import React from 'react';
 import styles from './Main.module.css';
 import useWebLLM from '../webLLM/useWebLLM';
-import { Button, Notification, Progress } from '@theme';
-import { formatBytes, round } from '@common/functions';
-import { NotificationType } from '../theme/Misc/Notification';
-import Tweeter from '@app/Tweeter';
 import cn from '@common/classnames';
 import Model from '../webLLM/Model';
+import { GenerationState } from '../webLLM/static/types';
+import { NotificationType, Notification } from '@theme';
+import Tweeter from '@app/Tweeter';
+import { isModelLoaded } from '@common/storage';
+import hasModelInCache from '../webLLM/utils/hasModelInCache';
+import Downloader from '@app/Downloader';
+
+enum DOWNLOAD_STATE {
+  EVALUATING = 'EVALUATING',
+  NOT_DOWNLOADED = 'NOT_DOWNLOADED',
+  DOWNLOADED = 'DOWNLOADED',
+}
 
 const Main: React.FC<{ model: Model; className?: string }> = ({
-  model,
   className = '',
+  model: selectedModel,
 }) => {
+  const [downloaded, setDownloaded] = React.useState<DOWNLOAD_STATE>(
+    DOWNLOAD_STATE.EVALUATING
+  );
   const {
-    modelLoaded,
-    modelLoading,
-    modelCached,
-    generatorInitialized,
-    report,
-    error,
-    loadModel,
+    setModel,
+    model,
     generationState,
+    error,
     generate,
     answer,
-    stats,
-  } = useWebLLM(model);
-  const progress = report?.progress || 0;
+    runtimeStats,
+    loaderReport,
+    initiate,
+  } = useWebLLM();
+
+  React.useEffect(() => {
+    setModel(selectedModel);
+    setDownloaded(DOWNLOAD_STATE.EVALUATING);
+    hasModelInCache(selectedModel).then((cached) =>
+      setDownloaded(
+        cached ? DOWNLOAD_STATE.DOWNLOADED : DOWNLOAD_STATE.NOT_DOWNLOADED
+      )
+    );
+  }, [selectedModel]);
 
   return (
+    <main className={cn(styles.root, className)}>
+      {downloaded === DOWNLOAD_STATE.EVALUATING ? (
+        <div />
+      ) : downloaded === DOWNLOAD_STATE.NOT_DOWNLOADED ? (
+        <Downloader
+          className={styles.initialize}
+          progress={loaderReport?.progress || 0}
+          loadModel={async () => {
+            await initiate();
+            setDownloaded(DOWNLOAD_STATE.DOWNLOADED);
+          }}
+          modelSize={model.size}
+        />
+      ) : generationState === GenerationState.ERROR ? (
+        <Notification type={NotificationType.ERROR}>
+          An error occurred while loading the model:
+          <br />
+          {error}
+        </Notification>
+      ) : (
+        <Tweeter
+          generate={generate}
+          answer={answer}
+          generationState={generationState}
+          stats={runtimeStats}
+          model={model}
+          loaderReport={loaderReport}
+        />
+      )}
+    </main>
+  );
+
+  /*return (
     <main className={cn(styles.root, className)}>
       {!generatorInitialized ? null : modelLoaded ? (
         <Tweeter
@@ -82,7 +133,7 @@ const Main: React.FC<{ model: Model; className?: string }> = ({
         </div>
       )}
     </main>
-  );
+  );*/
 };
 
 export default Main;

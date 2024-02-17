@@ -1,17 +1,20 @@
 .root {
   display: flex;
+  justify-content: center;
+  align-items: center;
   flex-direction: column;
 }
 
-.loaderText {
-  margin-top: var(--space-grid-half);
+.initializeDataWarning {
+  margin-top: var(--space-grid);
   text-align: center;
   font-family: var(--font-mono);
   color: var(--c-p-light);
   font-size: var(--fs-xsmall);
   font-weight: 200;
-}
+  max-width: 400px;
 
-.initialize {
-  margin-top: calc(2 * var(--space-grid-big));
+  b {
+    font-weight: 700;
+  }
 }

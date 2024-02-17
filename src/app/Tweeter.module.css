@@ -23,7 +23,31 @@
 }
 
 .stats {
+  p + p,
+  p + button {
+    margin-top: 0.5em;
+  }
+}
+
+.benchmarkTests {
+  color: var(--c-p);
+  cursor: pointer;
+  margin-top: 1rem;
+  font-size: var(--fs-xsmall);
+  align-self: flex-end;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.benchmarkTestsModal {
   p + p {
     margin-top: 0.5em;
+  }
+
+  .benchmarkTestsModalButton {
+    margin-top: 1rem;
   }
 }

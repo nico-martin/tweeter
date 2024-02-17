@@ -8,8 +8,10 @@ import {
   Form,
   FormControls,
   FormElement,
+  Modal,
 } from '@theme';
 import { IconName } from '../theme/SVG/icons';
+import ShareBenchmarkResults from '@app/ShareBenchmarkResults';
 
 interface FormData {
   content: string;
@@ -38,9 +40,23 @@ const generatePrompt = (data: FormData) => {
 };
 
 const PromptForm: React.FC<{
-  setPrompt: (prompt: string) => void;
+  generate: (
+    prompt: string,
+    rememberPreviousConversation?: boolean
+  ) => Promise<string>;
   disabled: boolean;
-}> = ({ setPrompt, disabled }) => {
+  benchmarkTest?: boolean;
+  setBenchmarkTest: (benchmarkTest?: boolean) => void;
+  setShareResultsModal: (modal?: boolean) => void;
+}> = ({
+  generate,
+  disabled,
+  benchmarkTest = false,
+  setBenchmarkTest = () => {},
+  setShareResultsModal = () => {},
+}) => {
+  const [benchmarkTestRunning, setBenchmarkTestRunning] =
+    React.useState<boolean>(false);
   const methods = useForm<FormData>({
     defaultValues: {
       content: '',
@@ -49,11 +65,31 @@ const PromptForm: React.FC<{
     },
   });
 
+  React.useEffect(() => {
+    if (benchmarkTest && !benchmarkTestRunning) {
+      setBenchmarkTestRunning(benchmarkTest);
+      methods.setValue('content', 'I am trying out LLMs in the browser');
+      methods.setValue('emojis', true);
+      methods.setValue('hashtags', 'LLM, WebAI');
+      generate(
+        generatePrompt({
+          content: 'I am trying out LLMs in the browser',
+          emojis: true,
+          hashtags: 'LLM, WebAI',
+        })
+      ).then(() => {
+        setBenchmarkTestRunning(false);
+        setBenchmarkTest(false);
+        setShareResultsModal(true);
+      });
+    }
+  }, [benchmarkTest]);
+
   return (
     <FormProvider {...methods}>
       <Form
         onSubmit={methods.handleSubmit((data: FormData) => {
-          setPrompt(generatePrompt(data));
+          generate(generatePrompt(data));
         })}
       >
         <FormElement
@@ -76,6 +112,7 @@ const PromptForm: React.FC<{
         />
         <FormControls
           disabled={disabled}
+          loading={disabled}
           align="right"
           value="Generate"
           icon={IconName.SEND}
