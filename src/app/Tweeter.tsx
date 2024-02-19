@@ -28,7 +28,7 @@ const Tweeter: React.FC<{
   const [benchmarkTestModal, setBenchmarkTestModal] =
     React.useState<boolean>(false);
   const [shareResultsModal, setShareResultsModal] =
-    React.useState<boolean>(true);
+    React.useState<boolean>(false);
   const answerWithoutQuotes = answer.replace(/"/g, '');
   const [gpuAdapterInfo, setGpuAdapterInfo] =
     React.useState<GPUAdapterInfo>(null);
