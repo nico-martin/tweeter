@@ -12,6 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+function dataLog($data)
+{
+    $logFile = 'logfile.json';
+    $content = is_file($logFile) ? json_decode(file_get_contents($logFile), true) : [];
+    $timestamp = date('Y-m-d H:i:s');
+    $content[] = ['timestamp' => $timestamp, 'data' => $data];
+    file_put_contents($logFile, json_encode($content));
+}
+
 $allowedFields = [
     'os',
     'browser',
@@ -34,6 +43,7 @@ $maxStringLength = 200;
 
 $subject = "Tweeter Benchmark Email";
 $message = "";
+$logData = [];
 foreach ($dataFiltered as $key => $value) {
     if (!is_string($value)) {
         $value = '';
@@ -43,8 +53,10 @@ foreach ($dataFiltered as $key => $value) {
         $value = mb_substr($value, 0, $maxStringLength);
     }
 
+    $logData[$key] = $value;
     $message .= "$key: $value\n";
 }
+dataLog($logData);
 $mailSent = mail($env_to, $subject, $message);
 
 $response = [

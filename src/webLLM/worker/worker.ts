@@ -68,6 +68,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerRequest>) => {
         status: 'complete',
         requestId: event.data.requestId,
       });
+      return;
     }
 
     postMessage({

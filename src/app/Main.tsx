@@ -46,7 +46,10 @@ const Main: React.FC<{ model: Model; className?: string }> = ({
   }, [selectedModel]);
 
   return (
-    <main className={cn(styles.root, className)}>
+    <main
+      className={cn(styles.root, className)}
+      data-generation-state={generationState}
+    >
       {downloaded === DOWNLOAD_STATE.EVALUATING ? (
         <div />
       ) : downloaded === DOWNLOAD_STATE.NOT_DOWNLOADED ? (

@@ -99,7 +99,6 @@ const useWebLLM = (): {
         requestId,
       });
       onWorkerEvent(requestId, (data: WorkerResponse) => {
-        console.log(data);
         switch (data.status) {
           case 'progress': {
             setGenerationState(GenerationState.INITIALIZING);
