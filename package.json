@@ -1,6 +1,6 @@
 {
   "name": "tweeter",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "an LLM tweet composer in the browser",
   "scripts": {
     "dev": "vite --mode dev --host",

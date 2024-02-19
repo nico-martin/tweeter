@@ -12,6 +12,7 @@ import { round } from '@common/functions';
 import Model from '../webLLM/Model';
 import * as tvmjs from '@nico-martin/tvmjs';
 import ShareBenchmarkResults from '@app/ShareBenchmarkResults';
+import Mistral7BInstruct from '../webLLM/models/Mistral7BInstruct';
 
 const Tweeter: React.FC<{
   generate: (
@@ -43,7 +44,10 @@ const Tweeter: React.FC<{
     <React.Fragment>
       <div className={cn(styles.root)}>
         <PromptForm
-          disabled={generationState !== GenerationState.IDLE}
+          disabled={
+            generationState !== GenerationState.IDLE &&
+            generationState !== GenerationState.COMPLETE
+          }
           generate={generate}
           benchmarkTest={isBenchmarkTest}
           setBenchmarkTest={setIsBenchmarkTest}
@@ -108,53 +112,59 @@ const Tweeter: React.FC<{
             )}
         </div>
       </div>
-      {benchmarkTestModal && (
-        <Modal
-          close={() => setBenchmarkTestModal(false)}
-          size="small"
-          title="Benchmark test"
-        >
-          <div className={styles.benchmarkTestsModal}>
-            <p>
-              This test is used to test LLMs in the browser on different end
-              devices. It is not a standardised test in laboratory environments,
-              but serves as a snapshot of how users can interact with LLMs
-            </p>
-            <p>
-              All results will be published here:
-              <br />
-              <a
-                href="https://docs.google.com/spreadsheets/d/1EjMsyMW82ud3E81-Cpp_rRd2YXoqvano-K3kX_yM-rE/edit?usp=sharing"
-                target="_blank"
-              >
-                WebLLM in the wild
-              </a>
-            </p>
-            <Button
-              onClick={() => {
-                setIsBenchmarkTest(true);
-                setBenchmarkTestModal(false);
-              }}
-              className={styles.benchmarkTestsModalButton}
+      {model.id === Mistral7BInstruct.id && (
+        <React.Fragment>
+          {benchmarkTestModal && (
+            <Modal
+              close={() => setBenchmarkTestModal(false)}
+              size="small"
+              title="Benchmark test"
             >
-              Run test
-            </Button>
-          </div>
-        </Modal>
+              <div className={styles.benchmarkTestsModal}>
+                <p>
+                  This test is used to test LLMs in the browser on different end
+                  devices. It is not a standardised test in laboratory
+                  environments, but serves as a snapshot of how users can
+                  interact with LLMs
+                </p>
+                <p>
+                  All results will be published here:
+                  <br />
+                  <a
+                    href="https://docs.google.com/spreadsheets/d/1EjMsyMW82ud3E81-Cpp_rRd2YXoqvano-K3kX_yM-rE/edit?usp=sharing"
+                    target="_blank"
+                  >
+                    WebLLM in the wild
+                  </a>
+                </p>
+                <Button
+                  onClick={() => {
+                    setIsBenchmarkTest(true);
+                    setBenchmarkTestModal(false);
+                  }}
+                  className={styles.benchmarkTestsModalButton}
+                >
+                  Run test
+                </Button>
+              </div>
+            </Modal>
+          )}
+          {shareResultsModal && (
+            <ShareBenchmarkResults
+              stats={stats}
+              close={() => setShareResultsModal(false)}
+              gpuAdapterInfo={gpuAdapterInfo}
+              modelName={model.title}
+            />
+          )}
+          <button
+            className={styles.benchmarkTests}
+            onClick={() => setBenchmarkTestModal(true)}
+          >
+            benchmark test
+          </button>
+        </React.Fragment>
       )}
-      {shareResultsModal && (
-        <ShareBenchmarkResults
-          stats={stats}
-          close={() => setShareResultsModal(false)}
-          gpuAdapterInfo={gpuAdapterInfo}
-        />
-      )}
-      <button
-        className={styles.benchmarkTests}
-        onClick={() => setBenchmarkTestModal(true)}
-      >
-        benchmark test
-      </button>
     </React.Fragment>
   );
 };
